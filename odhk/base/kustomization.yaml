@@ -1,4 +1,5 @@
 commonLabels:
-  app: idaas-app
+  app: opendatahub-app
 bases:
 - ./opendatahub-io
+- ./pipelines

@@ -1,0 +1,21 @@
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  generateName: fd-pipeline-run-
+  name: fd-pipeline-run-1
+spec:
+  params:
+    - name: fd-ml-repo-url
+      value: 'https://github.com/parkarteam/frauddetection-ml.git'
+    - name: PATH_CONTEXT
+      value: model/mymodel      
+  pipelineRef:
+    name: fd-model-pipeline
+  resources:
+    - name: app-image
+      resourceRef:
+        name: model-image
+  workspaces:
+    - name: shared-ws
+      persistentVolumeClaim:
+        claimName: s2i-source-pvc

@@ -1,8 +1,8 @@
 apiVersion: kfdef.apps.kubeflow.org/v1
 kind: KfDef
 metadata:
-  name: opendatahub-mix
-  namespace: odhk
+  name: opendatahub
+  namespace: opendatahub
 spec:
   applications:
   - kustomizeConfig:
@@ -37,6 +37,19 @@ spec:
         path: superset
     name: superset
   - kustomizeConfig:
+      parameters:
+      - name: namespace
+        value: openshift-operators
+      repoRef:
+        name: manifests
+        path: kafka/cluster
+    name: strimzi-operator
+  - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: kafka/kafka
+    name: kafka-cluster
+  - kustomizeConfig:
       repoRef:
         name: manifests
         path: grafana/cluster
@@ -69,7 +82,7 @@ spec:
   - kustomizeConfig:
       parameters:
         - name: s3_endpoint_url
-          value: "minio.13.67.138.157.nip.io"
+          value: "s3.odh.com"
       repoRef:
         name: manifests
         path: jupyterhub/jupyterhub
@@ -85,6 +98,16 @@ spec:
   - kustomizeConfig:
       repoRef:
         name: manifests
+        path: airflow/operator
+    name: airflow-operator
+  - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: airflow/cluster
+    name: airflow-cluster
+  - kustomizeConfig:
+      repoRef:
+        name: manifests
         path: odhargo/cluster
     name: odhargo-cluster
   - kustomizeConfig:
@@ -92,20 +115,9 @@ spec:
         name: manifests
         path: odhargo/odhargo
     name: odhargo
-  - kustomizeConfig:
-      repoRef:
-        name: kf-manifests
-        path: tf-training/tf-job-crds
-    name: tf-job-crds
-  - kustomizeConfig:
-      repoRef:
-        name: kf-manifests
-        path: tf-training/tf-job-operator
-    name: tf-job-operator
   repos:
   - name: kf-manifests
-    uri: https://github.com/opendatahub-io/manifests/tarball/v1.0-branch-openshift  
+    uri: https://github.com/opendatahub-io/manifests/tarball/v0.7-branch-openshift  
   - name: manifests
     uri: https://github.com/opendatahub-io/odh-manifests/tarball/master
-  version: master
-# kubectl create rolebinding default-admin --clusterrole=admin --serviceaccount=odhk:default
+  version: v0.7-branch-openshift

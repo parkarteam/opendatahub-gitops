@@ -1,0 +1,22 @@
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineResource
+metadata:
+  name: model-image
+spec:
+  params:
+    - name: url
+      value: 'image-registry.openshift-image-registry.svc:5000/odhk/frauddetection-model:latest'
+  type: image
+
+--- 
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineResource
+metadata:
+  name: fd-git
+spec:
+  type: git
+  params:
+    - name: url
+      value: https://github.com/parkarteam/frauddetection-ml.git
+    - name: revision
+      value: master

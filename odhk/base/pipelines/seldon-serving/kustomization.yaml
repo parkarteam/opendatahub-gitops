@@ -1,0 +1,7 @@
+resources:
+- bud-push-task.yaml
+- build-echo-task.yaml
+- pipeline.yaml
+- pipelineresource.yaml
+- pipelinerun.yaml
+- persistentvolume.yaml

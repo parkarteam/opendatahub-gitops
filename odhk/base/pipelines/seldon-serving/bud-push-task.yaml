@@ -1,0 +1,79 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  name: bud-push
+spec:
+  params:
+    - default: .
+      description: The location of the path to run buildah from
+      name: PATH_CONTEXT
+      type: string
+    - default: 'true'
+      description: >-
+        Verify the TLS on the registry endpoint (for push/pull to a non-TLS
+        registry)
+      name: TLSVERIFY
+      type: string
+  resources:
+    outputs:
+      - name: image
+        type: image
+  steps:
+    # - script: |
+    #     #!/bin/sh
+    #     set -xe
+    #     echo shared-repo-path: $(workspaces.source.path)        
+    #     echo pwd:  $(pwd)
+    #     echo params.PATH_CONTEXT: $(params.PATH_CONTEXT)
+    #     echo DockerFile Path $(workspaces.source.path)/$(params.PATH_CONTEXT)/Dockerfile
+    #     ls -lah      
+    #     ls -lah source    
+    #     ls -lah source/model     
+    #     ls -lah source/model/mymodel
+    #     ls -lah source/model/mymodel/Dockerfile
+    #   image: busybox
+    #   name: echo
+    - command:
+        - buildah
+        - bud
+        - '--tls-verify=false'
+        - '--layers'
+        - '-f'
+        - $(workspaces.source.path)/$(params.PATH_CONTEXT)/Dockerfile
+        - '-t'
+        - $(resources.outputs.image.url)
+        - $(workspaces.source.path)/$(params.PATH_CONTEXT)
+      image: registry.redhat.io/rhel8/buildah
+      name: build
+      resources: {}
+      securityContext:
+        privileged: true
+      volumeMounts:
+        - mountPath: /var/lib/containers
+          name: varlibcontainers
+        - mountPath: /gen-source
+          name: gen-source
+      workingDir: $(workspaces.source.path)
+    - command:
+        - buildah
+        - push
+        - '--tls-verify=false'
+        - $(resources.outputs.image.url)
+        - 'docker://$(resources.outputs.image.url)'
+      image: registry.redhat.io/rhel8/buildah
+      name: push
+      resources: {}
+      securityContext:
+        privileged: true
+      volumeMounts:
+        - mountPath: /var/lib/containers
+          name: varlibcontainers
+  volumes:
+    - emptyDir: {}
+      name: varlibcontainers
+    - emptyDir: {}
+      name: gen-source
+    - emptyDir: {}
+      name: envparams
+  workspaces:
+    - name: source

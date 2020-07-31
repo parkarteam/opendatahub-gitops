@@ -1,0 +1,63 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Pipeline
+metadata:
+  name: fd-model-pipeline
+spec:
+  workspaces:
+      - name: shared-ws
+  params:
+  - name: fd-ml-repo-url
+    type: string
+    description: The git repository URL to clone from.     
+  - default: .
+    description: The location of the path to run buildah from
+    name: PATH_CONTEXT
+    type: string     
+  resources:
+  - name: app-image
+    type: image
+  tasks:
+  - name: fetch-repo
+    taskRef:
+      name: git-clone
+      kind: ClusterTask
+    workspaces:
+    - name: output
+      workspace: shared-ws
+    params:
+    - name: url
+      value: $(params.fd-ml-repo-url)
+    - name: deleteExisting
+      value: "true"
+  - name: build-echo
+    taskRef: 
+      name: build-echo
+    resources:
+      outputs:
+      - name: image
+        resource: app-image
+    runAfter: 
+      - fetch-repo              
+    workspaces:
+      - name: source
+        workspace: shared-ws 
+    params:
+    - name: repo-url
+      value: $(params.fd-ml-repo-url)      
+    - name: PATH_CONTEXT
+      value: $(params.PATH_CONTEXT)             
+  - name: generate-image-push
+    resources:
+      outputs:
+      - name: image
+        resource:  app-image
+    params: 
+      - name: PATH_CONTEXT
+        value: $(params.PATH_CONTEXT) 
+    taskRef:
+      name: bud-push
+    runAfter:
+      - build-echo
+    workspaces:
+      - name: source
+        workspace: shared-ws      
